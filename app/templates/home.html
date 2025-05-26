@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  	<meta charset="UTF-8">
+  	<title>競プロ デバック 視覚化</title>
+  	<meta name="viewport" content="width=device-width, initial-scale=1">
+  	<!-- Bootstrap -->
+  	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+<div class="container mt-5">
+	<h1 class="text-center mb-3">競プロ デバック 視覚化</h1>
+    <h2 class="mb-3">プログラム入力</h2>
+    <form method="post" action="/">        
+        <div class="mb-3">
+            <label for="code-input" class="form-label">コードをここに入力してください：</label>
+            <textarea class="form-control" id="code-input" name="code-input" rows="15">{% if code != None %}{{ code }}{% endif %}</textarea>
+        </div>
+        <button type="submit" class="btn btn-primary">実行</button>    
+    </form>
+
+    {% if variables != None or one_d_array != None %}
+        <div class="d-flex justify-content-center mb-3">
+            <button id="prev-btn" class="btn btn-primary">&lt; 前</button>
+            <button id="next-btn" class="btn btn-primary">次 &gt;</button>
+
+            {% set max_length = variables|length if variables|length > one_d_array|length else one_d_array|length %}
+
+            <select id="step-select" class="form-select mx-2" style="width: auto;">
+            {% for i in range(max_length) %}
+                <option value="{{ i }}">ステップ {{ i + 1 }}</option>
+            {% endfor %}
+            </select>
+
+            <select id="step-length-select" class="form-select mx-2" style="width: auto;">
+            {% for i in range(max_length) %}
+                <option value="{{ i+1 }}">同時に表示するステップ数 {{ i+1 }}</option>
+            {% endfor %}
+            </select>
+        </div>
+    {% endif %}
+
+    {% if variables != None %}
+		<div class="table-responsive">
+			<h4>変数</h4>
+			<table class="table table-bordered table-striped" id="variables-table">
+                <thead class="table-light">
+                </thead>
+                <tbody></tbody>
+            </table>
+		</div>
+    {% endif %}
+
+    {% if one_d_array != None %}
+		<div class="table-responsive">
+			<h4>一次元配列</h4>
+			<table class="table table-bordered" id="one-d-array-table">
+                <thead>
+                </thead>
+                <tbody></tbody>
+            </table>
+		</div>
+    {% endif %}
+
+
+</div>
+</body>
+
+<script>
+    
+	document.getElementById('code-input').placeholder =
+`例：
+from atcoder.dsu import DSU
+
+N, Q = map(int, input().split())
+uf = DSU(N)
+for _ in range(Q):
+    t, u, v = map(int, input().split())
+    if t == 0:
+        uf.merge(u, v)
+    else:
+        if uf.same(u, v):
+            print(1)
+        else:
+            print(0)`;
+
+    document.getElementById("prev-btn").addEventListener("click", prev);
+    document.getElementById("next-btn").addEventListener("click", next);
+    const variables = JSON.parse('{{ variables_json|safe }}');
+    const one_d_array = JSON.parse('{{ one_d_array_json|safe }}');
+    let current_step = 0;
+    let display_step_count = 1;
+
+    function renderVariablesTableHeader(start_step,last_step) {
+        const table_head = document.querySelector("#variables-table thead");
+        table_head.innerHTML = "";
+
+        const row = document.createElement("tr");
+        
+        // 変数名のヘッダー
+        const variable_name = document.createElement("th");
+        variable_name.textContent = "変数名";
+        row.appendChild(variable_name);
+
+        // 値のヘッダーをdisplay_step_countに合わせて作る
+        for(let i = start_step; i < last_step; i++) {
+            const value_name = document.createElement("th");
+            value_name.textContent = `ステップ ${i + 1}`;
+            row.appendChild(value_name);
+        }
+
+        table_head.appendChild(row);
+    }
+
+    function renderVariablesTable(start_step,last_step) {
+        
+        const table_body = document.querySelector("#variables-table tbody");
+        table_body.innerHTML = "";
+
+        renderVariablesTableHeader(start_step,last_step);
+
+        const step_row = document.createElement("tr");
+        const step_cell = document.createElement("td");
+        step_cell.colSpan = (last_step - start_step) + 1;
+        step_cell.textContent = `ステップ: ${start_step + 1}～${last_step}`;
+        step_cell.style.fontWeight = "bold";
+        step_row.appendChild(step_cell);
+        table_body.appendChild(step_row);
+
+        const union_keys = Array.from(
+            new Set(
+                variables.slice(start_step, last_step).flatMap(dict => Object.keys(dict))
+            )
+        );
+
+        for(let i=0; i < union_keys.length; i++) {
+            const row = document.createElement("tr");
+            const variable_name = document.createElement("td");
+            variable_name.textContent = union_keys[i];
+            row.appendChild(variable_name);
+
+            for(let j=start_step; j < last_step; j++) {
+                const value_cell = document.createElement("td");
+                if (variables[j][union_keys[i]] !== undefined) {
+                    value_cell.textContent = variables[j][union_keys[i]];
+                } else {
+                    value_cell.textContent = "N/A";
+                }
+                row.appendChild(value_cell);
+            }
+
+            table_body.appendChild(row);
+        }
+    }
+
+    function renderOneDArrayTableHeader(max_len) {
+        const table_head = document.querySelector("#one-d-array-table thead");
+        table_head.innerHTML = "";
+
+        const row = document.createElement("tr");
+        
+        // 変数名のヘッダー
+        const variable_name = document.createElement("th");
+        variable_name.textContent = "変数名";
+        row.appendChild(variable_name);
+
+        // 変数名のヘッダー
+        const step_value = document.createElement("th");
+        step_value.textContent = "ステップ";
+        row.appendChild(step_value);
+
+        // 値のヘッダーをdisplay_step_countに合わせて作る
+        for(let i = 0; i < max_len; i++) {
+            const value_name = document.createElement("th");
+            value_name.textContent = `idx${i + 1}`;
+            row.appendChild(value_name);
+        }
+
+        table_head.appendChild(row);
+    }
+
+    function renderOneDArray(start_step,last_step) {
+        let max_len = 0;
+        for (let i = start_step; i < last_step; i++) {
+            const obj = one_d_array[i];
+            for (const key in obj) {
+                if (Object.hasOwn(obj,key)) {
+                    max_len = Math.max(max_len, obj[key].length);
+                }
+            }
+        }
+        renderOneDArrayTableHeader(max_len);
+
+        const table_body = document.querySelector("#one-d-array-table tbody");
+        table_body.innerHTML = "";
+
+        const union_keys = Array.from(
+            new Set(
+                one_d_array.slice(start_step, last_step).flatMap(dict => Object.keys(dict))
+            )
+        );
+
+        for(let i=0; i < union_keys.length; i++) {
+            for(let j=start_step; j < last_step; j++) {
+                if (one_d_array[j][union_keys[i]] === undefined) {
+                    continue;
+                }
+                const row = document.createElement("tr");
+                if (i % 2 === 0) {
+                    row.classList.add('table-secondary');  // 薄いグレー風
+                    row.classList.remove('table-light');
+                } else {
+                    row.classList.add('table-light');      // 白
+                    row.classList.remove('table-secondary');
+                }
+                const variable_name = document.createElement("td");
+                variable_name.textContent = union_keys[i];
+                row.appendChild(variable_name);
+
+                const step_name = document.createElement("td");
+                step_name.textContent = j+1;
+                row.appendChild(step_name);
+
+                for(let k=0;k < one_d_array[j][union_keys[i]].length; k++) {
+                    const value_cell = document.createElement("td");
+                    value_cell.textContent = one_d_array[j][union_keys[i]][k];
+                    row.appendChild(value_cell);
+                }
+                for(let k=one_d_array[j][union_keys[i]].length;k < max_len; k++) {
+                    const value_cell = document.createElement("td");
+                    value_cell.textContent = "N/A";
+                    value_cell.style.color = "gray";  // N/Aのセルは薄い色にする
+                    row.appendChild(value_cell);
+                }
+                table_body.appendChild(row);
+            }
+        }
+    }
+
+    function renderTable(start_step,last_step){
+        renderVariablesTable(start_step,last_step);
+        renderOneDArray(start_step,last_step);
+    }
+
+    function prev() {
+        if (current_step > 0) {
+            current_step--;
+            renderTable(Math.max(0,current_step),Math.min(current_step+display_step_count,variables.length));                  // テーブルを再描画
+        }
+    }
+
+    function next() {
+        if (current_step < variables.length - 1) {
+            current_step++;
+            renderTable(Math.max(0,current_step),Math.min(current_step+display_step_count,variables.length));                  // テーブルを再描画
+        }
+    }
+
+    const step_select = document.getElementById('step-select');
+    step_select.addEventListener('change', (event) => {
+        current_step = Number(event.target.value);  // 選ばれたoptionのvalueを数値に変換して代入
+        renderTable(Math.max(0,current_step),Math.min(current_step+display_step_count,variables.length));                  // テーブルを再描画
+    });
+
+    const step_length_select = document.getElementById('step-length-select');
+    step_length_select.addEventListener('change', (event) => {
+        display_step_count = Number(event.target.value);  // 選ばれたoptionのvalueを数値に変換して代入
+        renderTable(Math.max(0,current_step),Math.min(current_step+display_step_count,variables.length));                  // テーブルを再描画
+    });
+
+    renderTable(Math.max(0,current_step),Math.min(current_step+display_step_count,variables.length));                  // テーブルを再描画
+
+</script>
+
+</html>
