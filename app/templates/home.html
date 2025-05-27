@@ -19,28 +19,26 @@
         <button type="submit" class="btn btn-primary">実行</button>    
     </form>
 
-    {% if variables != None or one_d_array != None %}
+    {% if all_variables != None%}
         <div class="d-flex justify-content-center mb-3">
             <button id="prev-btn" class="btn btn-primary">&lt; 前</button>
             <button id="next-btn" class="btn btn-primary">次 &gt;</button>
 
-            {% set max_length = variables|length if variables|length > one_d_array|length else one_d_array|length %}
-
             <select id="step-select" class="form-select mx-2" style="width: auto;">
-            {% for i in range(max_length) %}
-                <option value="{{ i }}">ステップ {{ i + 1 }}</option>
+            {% for i in range(all_variables|length) %}
+                <option value="{{ i }}">ステップ {{ i+1 }}</option>
             {% endfor %}
             </select>
 
             <select id="step-length-select" class="form-select mx-2" style="width: auto;">
-            {% for i in range(max_length) %}
+            {% for i in range(all_variables|length) %}
                 <option value="{{ i+1 }}">同時に表示するステップ数 {{ i+1 }}</option>
             {% endfor %}
             </select>
         </div>
     {% endif %}
 
-    {% if variables != None %}
+    {% if all_variables != None %}
 		<div class="table-responsive">
 			<h4>変数</h4>
 			<table class="table table-bordered table-striped" id="variables-table">
@@ -49,12 +47,25 @@
                 <tbody></tbody>
             </table>
 		</div>
-    {% endif %}
 
-    {% if one_d_array != None %}
 		<div class="table-responsive">
 			<h4>一次元配列</h4>
 			<table class="table table-bordered" id="one-d-array-table">
+                <thead>
+                </thead>
+                <tbody></tbody>
+            </table>
+		</div>
+
+		<div class="table-responsive">
+			<h4>N次元配列</h4>
+            <div class="d-flex gap-2 align-items-center">
+                <select id="n-d-array-select" class="form-select" style="width: auto;"></select>
+                <select id="vertical-axis" class="form-select" style="width: auto;"></select>
+                <select id="horizontal-axis" class="form-select" style="width: auto;"></select>
+                <div id="fixed-dimension-container" class="d-flex gap-2 align-items-center"></div>
+            </div>
+            <table class="table table-bordered" id="n-d-array-table">
                 <thead>
                 </thead>
                 <tbody></tbody>
@@ -67,8 +78,7 @@
 </body>
 
 <script>
-    
-	document.getElementById('code-input').placeholder =
+    document.getElementById('code-input').placeholder =
 `例：
 from atcoder.dsu import DSU
 
@@ -84,13 +94,7 @@ for _ in range(Q):
         else:
             print(0)`;
 
-    document.getElementById("prev-btn").addEventListener("click", prev);
-    document.getElementById("next-btn").addEventListener("click", next);
-    const variables = JSON.parse('{{ variables_json|safe }}');
-    const one_d_array = JSON.parse('{{ one_d_array_json|safe }}');
-    let current_step = 0;
-    let display_step_count = 1;
-
+{%if all_variables != None %}
     function renderVariablesTableHeader(start_step,last_step) {
         const table_head = document.querySelector("#variables-table thead");
         table_head.innerHTML = "";
@@ -102,7 +106,7 @@ for _ in range(Q):
         variable_name.textContent = "変数名";
         row.appendChild(variable_name);
 
-        // 値のヘッダーをdisplay_step_countに合わせて作る
+        // 値のヘッダーを_display_step_countに合わせて作る
         for(let i = start_step; i < last_step; i++) {
             const value_name = document.createElement("th");
             value_name.textContent = `ステップ ${i + 1}`;
@@ -129,7 +133,7 @@ for _ in range(Q):
 
         const union_keys = Array.from(
             new Set(
-                variables.slice(start_step, last_step).flatMap(dict => Object.keys(dict))
+                _all_variables.slice(start_step, last_step).flatMap(dict => dict["variables"] ? Object.keys(dict["variables"]) : [])
             )
         );
 
@@ -141,8 +145,8 @@ for _ in range(Q):
 
             for(let j=start_step; j < last_step; j++) {
                 const value_cell = document.createElement("td");
-                if (variables[j][union_keys[i]] !== undefined) {
-                    value_cell.textContent = variables[j][union_keys[i]];
+                if (_all_variables[j]?.["variables"]?.[union_keys[i]] !== undefined) {
+                    value_cell.textContent = _all_variables[j]["variables"][union_keys[i]];
                 } else {
                     value_cell.textContent = "N/A";
                 }
@@ -169,7 +173,7 @@ for _ in range(Q):
         step_value.textContent = "ステップ";
         row.appendChild(step_value);
 
-        // 値のヘッダーをdisplay_step_countに合わせて作る
+        // 値のヘッダーを_display_step_countに合わせて作る
         for(let i = 0; i < max_len; i++) {
             const value_name = document.createElement("th");
             value_name.textContent = `idx${i + 1}`;
@@ -182,13 +186,16 @@ for _ in range(Q):
     function renderOneDArray(start_step,last_step) {
         let max_len = 0;
         for (let i = start_step; i < last_step; i++) {
-            const obj = one_d_array[i];
-            for (const key in obj) {
-                if (Object.hasOwn(obj,key)) {
-                    max_len = Math.max(max_len, obj[key].length);
+            const obj = _all_variables[i]?.["one_d_array"];
+            if (obj) {  // objが存在するときだけ処理
+                for (const key in obj) {
+                    if (Object.hasOwn(obj, key)) {
+                        max_len = Math.max(max_len, obj[key].length);
+                    }
                 }
             }
         }
+
         renderOneDArrayTableHeader(max_len);
 
         const table_body = document.querySelector("#one-d-array-table tbody");
@@ -196,13 +203,13 @@ for _ in range(Q):
 
         const union_keys = Array.from(
             new Set(
-                one_d_array.slice(start_step, last_step).flatMap(dict => Object.keys(dict))
+                _all_variables.slice(start_step, last_step).flatMap(dict => dict["one_d_array"] ? Object.keys(dict["one_d_array"]) : [])
             )
         );
 
         for(let i=0; i < union_keys.length; i++) {
             for(let j=start_step; j < last_step; j++) {
-                if (one_d_array[j][union_keys[i]] === undefined) {
+                if (_all_variables[j]?.["one_d_array"]?.[union_keys[i]] === undefined) {
                     continue;
                 }
                 const row = document.createElement("tr");
@@ -221,12 +228,12 @@ for _ in range(Q):
                 step_name.textContent = j+1;
                 row.appendChild(step_name);
 
-                for(let k=0;k < one_d_array[j][union_keys[i]].length; k++) {
+                for(let k=0;k < _all_variables[j]["one_d_array"][union_keys[i]].length; k++) {
                     const value_cell = document.createElement("td");
-                    value_cell.textContent = one_d_array[j][union_keys[i]][k];
+                    value_cell.textContent = _all_variables[j]["one_d_array"][union_keys[i]][k];
                     row.appendChild(value_cell);
                 }
-                for(let k=one_d_array[j][union_keys[i]].length;k < max_len; k++) {
+                for(let k=_all_variables[j]["one_d_array"][union_keys[i]].length;k < max_len; k++) {
                     const value_cell = document.createElement("td");
                     value_cell.textContent = "N/A";
                     value_cell.style.color = "gray";  // N/Aのセルは薄い色にする
@@ -237,39 +244,191 @@ for _ in range(Q):
         }
     }
 
+    function getDimension(n_d_array) {
+        if(Array.isArray(n_d_array)){
+            return getDimension(n_d_array[0])+1;
+        }else{
+            return 0;
+        }
+    }
+
+    function getDimensionLength(n_d_array,index) {
+        if(index === 0)return n_d_array.length;
+        else{
+            return getDimensionLength(n_d_array[0],index-1);
+        }
+    }
+
+    function nDArraySelectFirstSet(start_step,n_d_array_name){
+        const n_d_array_select = document.getElementById("n-d-array-select");
+        const vertical_axis = document.getElementById("vertical-axis");
+        const horizontal_axis = document.getElementById("horizontal-axis");
+        const fixed_dimension_container = document.getElementById("fixed-dimension-container");
+
+        _n_d_array_dimension = getDimension(_all_variables[start_step]["n_d_array"][_n_d_array_name],0);
+
+        if(_n_d_array_dimension < 2){
+            vertical_axis.disabled = true;
+            horizontal_axis.disabled = true;
+            return;
+        }
+
+        for(let i=0; i < _n_d_array_dimension; i++) {
+            const option = document.createElement("option");
+            option.value = i;
+            option.textContent = `次元${i+1}`;
+            vertical_axis.appendChild(option);
+            horizontal_axis.appendChild(option.cloneNode(true));
+            if(_n_d_array_dimension > 2){
+                const select = document.createElement("select");
+                select.className = "form-select";
+                select.style.width = "auto";
+                select.id = `fixed-dimension-${i}`;
+                const dimension_length = getDimensionLength(_all_variables[start_step]["n_d_array"][_n_d_array_name],i);
+                for(let j=0; j < dimension_length; j++) {
+                    const option = document.createElement("option");
+                    option.value = j;
+                    option.textContent = `次元${i+1}idx${j}`;
+                    select.appendChild(option);
+                }
+                fixed_dimension_container.appendChild(select);
+            }
+        }
+        vertical_axis.value = 0;
+        horizontal_axis.value = 1;
+
+        _vertical_axis_dimension = vertical_axis.value;
+        _horizontal_axis_dimension = horizontal_axis.value;
+
+        _fixed_dimension_index = [];
+        _fixed_dimension_index.push(-1);
+        _fixed_dimension_index.push(-1);
+        for(let j=2; j < _n_d_array_dimension; j++) {
+            _fixed_dimension_index.push(0);
+        }
+        
+
+        if(_n_d_array_dimension > 2){
+            document.getElementById(`fixed-dimension-${_vertical_axis_dimension}`).disabled = true;
+            document.getElementById(`fixed-dimension-${_horizontal_axis_dimension}`).disabled = true;
+        }
+
+        n_d_array_select.disabled = false;
+        vertical_axis.disabled = false;
+        horizontal_axis.disabled = false;
+    }
+
+    function nDArraySelectReset(start_step){
+        const n_d_array_select = document.getElementById("n-d-array-select");
+        const vertical_axis = document.getElementById("vertical-axis");
+        const horizontal_axis = document.getElementById("horizontal-axis");
+        const fixed_dimension_container = document.getElementById("fixed-dimension-container");
+
+        n_d_array_select.innerHTML = "";
+        vertical_axis.innerHTML = "";
+        horizontal_axis.innerHTML = "";
+        fixed_dimension_container.innerHTML = "";
+
+        const keys = _all_variables[start_step]?.["n_d_array"] ? Object.keys(_all_variables[start_step]?.["n_d_array"]) : [];
+        if(keys.length < 1){
+            n_d_array_select.disabled = true;
+            vertical_axis.disabled = true;
+            horizontal_axis.disabled = true;
+            return;
+        }
+
+        _n_d_array_name = keys[0];
+        for(let i=0; i < keys.length; i++) {
+            const option = document.createElement("option");
+            option.value = keys[i];
+            option.textContent = `変数名:${keys[i]}`;
+            n_d_array_select.appendChild(option);
+        }
+
+        nDArraySelectFirstSet(start_step,_n_d_array_name);
+    }
+
+    
+    function changeVerticalAxis(start_step,prev_vertical_axis_dimension,new_vertical_axis_dimension){
+        _vertical_axis_dimension = new_vertical_axis_dimension;
+        if(prev_vertical_axis_dimension !== _horizontal_axis_dimension){
+            _fixed_dimension_index[prev_vertical_axis_dimension] = document.getElementById(`fixed-dimension-${prev_vertical_axis_dimension}`).value;
+            if(_n_d_array_dimension > 2)document.getElementById(`fixed-dimension-${prev_vertical_axis_dimension}`).disabled = false;
+        }
+        _fixed_dimension_index[new_vertical_axis_dimension] = -1;
+        if(_n_d_array_dimension > 2)document.getElementById(`fixed-dimension-${new_vertical_axis_dimension}`).disabled = true;
+    }
+
+    function changeHorizontalAxis(start_step,prev_horizontal_axis_dimension,new_horizontal_axis_dimension){
+        _horizontal_axis_dimension = new_horizontal_axis_dimension;
+        if(prev_horizontal_axis_dimension !== _vertical_axis_dimension){
+            _fixed_dimension_index[prev_horizontal_axis_dimension] = document.getElementById(`fixed-dimension-${prev_horizontal_axis_dimension}`).value;
+            if(_n_d_array_dimension > 2)document.getElementById(`fixed-dimension-${prev_horizontal_axis_dimension}`).disabled = false;
+        }
+        _fixed_dimension_index[new_horizontal_axis_dimension] = -1;
+        if(_n_d_array_dimension > 2)document.getElementById(`fixed-dimension-${new_horizontal_axis_dimension}`).disabled = true;
+    }
+
+    function renderNDArray(variable_name, vertical_dimension){
+
+    }
+
     function renderTable(start_step,last_step){
-        renderVariablesTable(start_step,last_step);
-        renderOneDArray(start_step,last_step);
+        if(_all_variables && _all_variables.length !== 0) {
+            renderVariablesTable(start_step,last_step);
+            renderOneDArray(start_step,last_step);
+            
+        }
     }
 
+    function selectFirstSet(start_step){
+       nDArraySelectReset(start_step);
+    }
+
+    document.getElementById("prev-btn").addEventListener("click", prev);
     function prev() {
-        if (current_step > 0) {
-            current_step--;
-            renderTable(Math.max(0,current_step),Math.min(current_step+display_step_count,variables.length));                  // テーブルを再描画
+        if (_current_step > 0) {
+            _current_step--;
+            selectFirstSet(Math.max(0,_current_step));
+            renderTable(Math.max(0,_current_step),Math.min(_current_step+_display_step_count,_all_variables.length));
         }
     }
 
+    document.getElementById("next-btn").addEventListener("click", next);
     function next() {
-        if (current_step < variables.length - 1) {
-            current_step++;
-            renderTable(Math.max(0,current_step),Math.min(current_step+display_step_count,variables.length));                  // テーブルを再描画
+        if (_current_step < _all_variables.length - 1) {
+            _current_step++;
+            selectFirstSet(Math.max(0,_current_step));
+            renderTable(Math.max(0,_current_step),Math.min(_current_step+_display_step_count,_all_variables.length));
         }
     }
 
-    const step_select = document.getElementById('step-select');
-    step_select.addEventListener('change', (event) => {
-        current_step = Number(event.target.value);  // 選ばれたoptionのvalueを数値に変換して代入
-        renderTable(Math.max(0,current_step),Math.min(current_step+display_step_count,variables.length));                  // テーブルを再描画
+    const _step_select = document.getElementById('step-select');
+    _step_select.addEventListener('change', (event) => {
+        _current_step = Number(event.target.value);  // 選ばれたoptionのvalueを数値に変換して代入
+        selectFirstSet(Math.max(0,_current_step));
+        renderTable(Math.max(0,_current_step),Math.min(_current_step+_display_step_count,_all_variables.length));
     });
 
-    const step_length_select = document.getElementById('step-length-select');
-    step_length_select.addEventListener('change', (event) => {
-        display_step_count = Number(event.target.value);  // 選ばれたoptionのvalueを数値に変換して代入
-        renderTable(Math.max(0,current_step),Math.min(current_step+display_step_count,variables.length));                  // テーブルを再描画
+    const _step_length_select = document.getElementById('step-length-select');
+    _step_length_select.addEventListener('change', (event) => {
+        _display_step_count = Number(event.target.value);  // 選ばれたoptionのvalueを数値に変換して代入
+        renderTable(Math.max(0,_current_step),Math.min(_current_step+_display_step_count,_all_variables.length));
     });
+    
+    const _all_variables = JSON.parse('{{ all_variables_json|safe }}');
+    let _current_step = 0;
+    let _display_step_count = 1;
 
-    renderTable(Math.max(0,current_step),Math.min(current_step+display_step_count,variables.length));                  // テーブルを再描画
+    let _n_d_array_name = "";
+    let _n_d_array_dimension = 0;
+    let _vertical_axis_dimension = 0;
+    let _horizontal_axis_dimension = 0;
+    let _fixed_dimension_index = [];
 
+    selectFirstSet(Math.max(0,_current_step));
+    renderTable(Math.max(0,_current_step),Math.min(_current_step+_display_step_count,_all_variables.length));
+{% endif %}
 </script>
 
 </html>
