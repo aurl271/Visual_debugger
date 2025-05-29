@@ -10,11 +10,19 @@
 <body>
 <div class="container mt-5">
 	<h1 class="text-center mb-3">競プロ デバック 視覚化</h1>
+    {% if error_message != None%}
+    <p class="text-danger">エラー発生</p>
+    {% endif %}
     <h2 class="mb-3">プログラム入力</h2>
     <form method="post" action="/">        
         <div class="mb-3">
             <label for="code-input" class="form-label">コードをここに入力してください：</label>
             <textarea class="form-control" id="code-input" name="code-input" rows="15">{% if code != None %}{{ code }}{% endif %}</textarea>
+        </div>
+        <h2 class="mb-3">入力データ</h2>     
+        <div class="mb-3">
+            <label for="input-data" class="form-label">プログラムの入力をここに入力してください：</label>
+            <textarea class="form-control" id="input-data" name="input-data" rows="8">{% if input_data != None %}{{ input_data }}{% endif %}</textarea>
         </div>
         <button type="submit" class="btn btn-primary">実行</button>    
     </form>
@@ -80,19 +88,12 @@
 <script>
     document.getElementById('code-input').placeholder =
 `例：
-from atcoder.dsu import DSU
-
-N, Q = map(int, input().split())
-uf = DSU(N)
-for _ in range(Q):
-    t, u, v = map(int, input().split())
-    if t == 0:
-        uf.merge(u, v)
-    else:
-        if uf.same(u, v):
-            print(1)
-        else:
-            print(0)`;
+N, X = map(int, input().split())
+A = list(map(int, input().split()))
+for i in range(N):
+    A[i] = A[i] + X
+    debug(N=N,X=X,A=A)
+`;
 </script>
 {%if all_variables != None %}
     <script>

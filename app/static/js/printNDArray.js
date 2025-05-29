@@ -139,7 +139,7 @@ export default class printNDArray{
             //i次元目のオプションの追加
             const option = document.createElement("option");
             option.value = i;
-            option.textContent = `次元${i+1}`;
+            option.textContent = `次元${i}`;
             vertical_axis.appendChild(option);
             horizontal_axis.appendChild(option.cloneNode(true));
 
@@ -158,7 +158,7 @@ export default class printNDArray{
                 for(let j=0; j < dimension_length; j++) {
                     const option = document.createElement("option");
                     option.value = j;
-                    option.textContent = `次元${i+1}idx${j}`;
+                    option.textContent = `次元${i}idx${j}`;
                     select.appendChild(option);
                 }
                 select.addEventListener("change",(event) =>{
@@ -289,6 +289,8 @@ export default class printNDArray{
         const table_head = document.querySelector("#n-d-array-table thead");
         table_head.innerHTML = "";
 
+        console.log(vertical_dimension,horizontal_dimension);
+
         //vertical_dimension === horizontal_dimensionなら2次元配列が作れないので何もしないで終わり
         if(vertical_dimension === horizontal_dimension) return;
 
@@ -330,7 +332,7 @@ export default class printNDArray{
             }
         }
 
-        if(vertical_dimension === horizontal_dimension && !is_exist){
+        if(vertical_dimension === horizontal_dimension || !is_exist){
             this.#renderNDArrayTableHeader(0,vertical_dimension,horizontal_dimension);
             return;
         }
