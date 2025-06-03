@@ -217,11 +217,10 @@ export default class printNDArray{
         
         //変数がないならセレクトを無効化
         if(union_keys.length < 1){
-            n_d_array_select.disabled = true;
-            vertical_axis.disabled = true;
-            horizontal_axis.disabled = true;
+            document.getElementById("n-d-array-div").style.display = "none";
             return;
         }
+        document.getElementById("n-d-array-div").style.display = "block";
 
         
         //変数名のオプションの追加
@@ -234,7 +233,6 @@ export default class printNDArray{
         //とりあえず一番最初の変数名をセット
         this.#_variable_name = union_keys[0];
         n_d_array_select.value = this.#_variable_name;
-        n_d_array_select.disabled = false;
 
         //セレクト欄の次元欄もセット
        this.#selectDimensionSet(start_step,last_step,this.#_variable_name,all_variables);
@@ -289,8 +287,6 @@ export default class printNDArray{
         const table_head = document.querySelector("#n-d-array-table thead");
         table_head.innerHTML = "";
 
-        console.log(vertical_dimension,horizontal_dimension);
-
         //vertical_dimension === horizontal_dimensionなら2次元配列が作れないので何もしないで終わり
         if(vertical_dimension === horizontal_dimension) return;
 
@@ -332,7 +328,15 @@ export default class printNDArray{
             }
         }
 
-        if(vertical_dimension === horizontal_dimension || !is_exist){
+        if(!is_exist){
+            this.#renderNDArrayTableHeader(0,vertical_dimension,horizontal_dimension);
+            document.getElementById("n-d-array-div").style.display = "none";
+            return;
+        }else{
+            document.getElementById("n-d-array-div").style.display = "visible";
+        }
+
+        if(vertical_dimension === horizontal_dimension){
             this.#renderNDArrayTableHeader(0,vertical_dimension,horizontal_dimension);
             return;
         }

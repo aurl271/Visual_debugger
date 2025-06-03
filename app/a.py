@@ -1,14 +1,3 @@
-x = 1
-y = 2.1
-z = "3"
-x_array = [1,2,3,4,5]
-y_array = [1.1,2.2,3.3,4.4,5.4]
-z_array = ["a","b","c","d","e"]
-two_d_array = [[1,2],[3,4]]
-three_d_array = [[[1, 2, 1], [3, 4, 3]], [[5, 6, 5], [7, 8, 7]]]
-debug(x=x,y=y,z=z,x_array=x_array,y_array=y_array,z_array=z_array,two_d_array=two_d_array ,three_d_array =three_d_array )
-
-
 from atcoder.segtree import SegTree
 
 # 区間和を管理するセグメント木を作成
@@ -26,3 +15,5 @@ print(st.all_prod())
 
 # 3番目の値を取得
 print(st.get(3))
+
+print(st.get_segtree())

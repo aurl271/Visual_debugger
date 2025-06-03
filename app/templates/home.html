@@ -11,12 +11,12 @@
 <div class="container mt-5">
 	<h1 class="text-center mb-3">競プロ デバック 視覚化</h1>
     {% if error_message != None%}
-    <p class="text-danger">エラー発生</p>
+    <p class="text-danger">{{error_message}}</p>
     {% endif %}
     <h2 class="mb-3">プログラム入力</h2>
     <form method="post" action="/">        
         <div class="mb-3">
-            <label for="code-input" class="form-label">コードをここに入力してください：</label>
+            <label for="code-input" class="form-label">コードをここに入力してください：</br>デバックしたいところにdebug(x = x)を入れてください(xは変数名)</label>
             <textarea class="form-control" id="code-input" name="code-input" rows="15">{% if code != None %}{{ code }}{% endif %}</textarea>
         </div>
         <h2 class="mb-3">入力データ</h2>     
@@ -47,7 +47,7 @@
     {% endif %}
 
     {% if all_variables != None %}
-		<div class="table-responsive">
+		<div class="table-responsive" id="variables-div">
 			<h4>変数</h4>
 			<table class="table table-bordered table-striped" id="variables-table">
                 <thead class="table-light">
@@ -56,7 +56,7 @@
             </table>
 		</div>
 
-		<div class="table-responsive">
+		<div class="table-responsive" id="one-d-array-div">
 			<h4>一次元配列</h4>
 			<table class="table table-bordered" id="one-d-array-table">
                 <thead>
@@ -65,7 +65,7 @@
             </table>
 		</div>
 
-		<div class="table-responsive">
+		<div class="table-responsive" id="n-d-array-div">
 			<h4>N次元配列</h4>
             <div class="d-flex gap-2 align-items-center">
                 <select id="n-d-array-select" class="form-select" style="width: auto;"></select>
@@ -74,6 +74,18 @@
                 <div id="fixed-dimension-container" class="d-flex gap-2 align-items-center"></div>
             </div>
             <table class="table table-bordered" id="n-d-array-table">
+                <thead>
+                </thead>
+                <tbody></tbody>
+            </table>
+		</div>
+
+        <div class="table-responsive" id="segmenttree-div">
+			<h4>セグ木</h4>
+            <div class="d-flex gap-2 align-items-center">
+                <select id="segmenttree-select" class="form-select" style="width: auto;"></select>
+            </div>
+            <table class="table table-bordered" id="segmenttree-table">
                 <thead>
                 </thead>
                 <tbody></tbody>

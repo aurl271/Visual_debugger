@@ -4,6 +4,7 @@ import atcoder._bit
 
 
 class SegTree:
+    
     def __init__(self,
                  op: typing.Callable[[typing.Any, typing.Any], typing.Any],
                  e: typing.Any,
@@ -117,3 +118,7 @@ class SegTree:
 
     def _update(self, k: int) -> None:
         self._d[k] = self._op(self._d[2 * k], self._d[2 * k + 1])
+        
+    #追加
+    def get_segtree(self) -> typing.List[typing.Any]:
+        return self._d

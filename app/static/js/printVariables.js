@@ -46,6 +46,13 @@ export default function renderVariablesTable(start_step,last_step,all_variables)
         )
     );
 
+    if(union_keys.length <= 0){
+        document.getElementById("variables-div").style.display = "none";
+        return;
+    }else{
+        document.getElementById("variables-div").style.display = "block";
+    }
+
     //変数名ごとにループ
     for(let i=0; i < union_keys.length; i++) {
         const row = document.createElement("tr");

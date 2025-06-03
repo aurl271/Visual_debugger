@@ -63,6 +63,13 @@ export default function renderOneDArrayTable(start_step,last_step,all_variables)
         )
     );
 
+    if(union_keys.length <= 0){
+        document.getElementById("one-d-array-div").style.display = "none";
+        return;
+    }else{
+        document.getElementById("one-d-array-div").style.display = "block";
+    }
+
     //変数名ごとにループ
     for(let i=0; i < union_keys.length; i++) {
         //ステップごとにループ
