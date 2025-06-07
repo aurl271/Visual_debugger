@@ -63,6 +63,7 @@ export default function renderOneDArrayTable(start_step,last_step,all_variables)
         )
     );
 
+    //変数がないなら表示を消してパス
     if(union_keys.length <= 0){
         document.getElementById("one-d-array-div").style.display = "none";
         return;

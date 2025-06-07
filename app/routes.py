@@ -21,14 +21,29 @@ def __get_dimension(array):
         # 空リストは0次元とみなす
         return 0
     return 1 + __get_dimension(array[0])
+    
+def __reshape(array,m):
+    if __get_dimension(array) == m:
+        return str(array)
+    else:
+        return [__reshape(x,m) for x in array]
 
-def debug(**kwargs):
+#option={変数名:{reshape: int}}
+#reshapeでmを指定すると、m次元配列を1つの要素として扱う
+def debug(option = None,**kwargs):
     print("###debug_start")
     for name,value in kwargs.items():
+        if name in option:
+            for key, val in option[name].items():
+                if key == "reshape":
+                    value = __reshape(value, val)
+                    
         if isinstance(value, (int, str, float)):
             print(f"variables {name} {value}")
         elif isinstance(value, (list,)):
-            if __get_dimension(value) == 1:
+            if __get_dimension(value) == 1 and ("stack" in name.lower() or "stk" in name.lower()):
+                print(f"stack {name} {value}")
+            elif __get_dimension(value) == 1:
                 print(f"one_d_array {name} {value}")
             elif __get_dimension(value) > 1:
                 print(f"n_d_array {name} {value}")
@@ -45,6 +60,12 @@ def str_to_number(s):
             return float(s)
         except ValueError:
             return s  # 数値でなければそのまま返す
+        
+def to_str_in_ndarray(obj):        
+    if isinstance(obj, list):
+        return [to_str_in_ndarray(x) for x in obj]
+    else:
+        return str(obj)
             
 @app.route("/",methods=['GET','POST'])
 def home():
@@ -82,23 +103,27 @@ def home():
                 for line in exec_output.splitlines():
                     if(line == "###debug_start"):
                         is_debug = True
+                        continue
                     elif(line == "###debug_end"):
                         all_variables.append(step_variables)
                         step_variables = {}
                         is_debug = False
                         continue
                     parts = line.split(maxsplit=2)
+                    print(parts)
                     if len(parts) != 3:
                         continue
                     type_name, var_name, value_str = parts
                     if type_name == "variables":
-                        step_variables.setdefault(type_name, {})[var_name] = str_to_number(value_str)
+                        step_variables.setdefault(type_name, {})[var_name] = value_str
                     elif type_name == "one_d_array":
-                        step_variables.setdefault(type_name, {})[var_name] = ast.literal_eval(value_str)
+                        step_variables.setdefault(type_name, {})[var_name] = [str(t) for t in ast.literal_eval(value_str)]
                     elif type_name == "n_d_array":
-                        step_variables.setdefault(type_name, {})[var_name] = ast.literal_eval(value_str)
+                        step_variables.setdefault(type_name, {})[var_name] = to_str_in_ndarray(ast.literal_eval(value_str))
                     elif type_name == "segtree":
-                        step_variables.setdefault(type_name, {})[var_name] = ast.literal_eval(value_str)
+                        step_variables.setdefault(type_name, {})[var_name] = [str(t) for t in ast.literal_eval(value_str)]
+                    elif type_name == "stack":
+                        step_variables.setdefault(type_name, {})[var_name] = [str(t) for t in ast.literal_eval(value_str)]
             except Exception as e:
                 error_message = str(e)
                 error_message = "エラー発生:" + error_message
@@ -106,11 +131,7 @@ def home():
         finally:
             sys.stdout = old_stdout
             
-        
-        #all_variables = [{"segtree":{"segtree1":[1,10,3,7,1,2,3,4],"segtree2":[1,26,11,15,5,6,7,8]} } ,
-        #                 {"segtree":{"segtree2":[1,58,27,31,13,14,15,16]}} ,
-        #                 {"segtree":{"segtree1":[1,10,7,3,4,3,2,1]}}]
-
+        print("all_variables:", all_variables)
         return render_template(
             "home.html",
             code=code,

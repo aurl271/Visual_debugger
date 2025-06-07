@@ -114,6 +114,7 @@ export default class printNDArray{
         horizontal_axis.innerHTML = "";
         fixed_dimension_container.innerHTML = "";
 
+        //変数名がないなら何もしない
         let exist_step = -1;
         for(let i=start_step;i < last_step;i++){
             if(all_variables[i]?.["n_d_array"]?.[variable_name] != undefined){
@@ -121,13 +122,12 @@ export default class printNDArray{
                 break;
             }
         }
-        
         if(exist_step === -1)return;
     
         //次元数の取得
         this.#_n_d_array_dimension = this.#getDimension(all_variables[exist_step]["n_d_array"][variable_name]);
 
-        //2次元以下ならセレクトを無効
+        //2次元未満ならセレクトを無効
         if(this.#_n_d_array_dimension < 2){
             vertical_axis.disabled = true;
             horizontal_axis.disabled = true;
@@ -246,7 +246,7 @@ export default class printNDArray{
         if(this.#_n_d_array_dimension > 2)document.getElementById(`fixed-dimension-${new_vertical_axis_dimension}`).disabled = true;
         //フィールドの更新
         this.#_vertical_axis_dimension = new_vertical_axis_dimension;
-
+        //表を表示
         this.renderNDArray(start_step,last_step,all_variables,this.#_variable_name,this.#_vertical_axis_dimension,this.#_horizontal_axis_dimension,this.#_fixed_dimension_index);
     }
 
@@ -258,23 +258,29 @@ export default class printNDArray{
         if(this.#_n_d_array_dimension > 2)document.getElementById(`fixed-dimension-${new_horizontal_axis_dimension}`).disabled = true;
         //フィールドの更新
         this.#_horizontal_axis_dimension = new_horizontal_axis_dimension;
+        //表を表示
         this.renderNDArray(start_step,last_step,all_variables,this.#_variable_name,this.#_vertical_axis_dimension,this.#_horizontal_axis_dimension,this.#_fixed_dimension_index);
     }
 
     //固定された次元の値を変更
     #changeFixedValue(start_step,last_step,fixed_dimension,fixed_dimension_value,all_variables){
-        const select = document.getElementById(`fixed-dimension-${fixed_dimension}`);  // selectのidを指定
+        //selectのidを指定
+        const select = document.getElementById(`fixed-dimension-${fixed_dimension}`);
+        //選択肢の値を取得
         const option_values = Array.from(select.options).map(option => Number(option.value));
         if(0 <= fixed_dimension && fixed_dimension < this.#_fixed_dimension_index.length
         && option_values.includes(fixed_dimension_value)
         ){
+            //固定された次元のインデックスの値を更新
             this.#_fixed_dimension_index[fixed_dimension] = fixed_dimension_value;
+            //表を表示
             this.renderNDArray(start_step,last_step,all_variables,this.#_variable_name,this.#_vertical_axis_dimension,this.#_horizontal_axis_dimension,this.#_fixed_dimension_index);
         }
     }
 
     //変数の指定
     #changeVariableName(start_step,last_step,new_variable_name,all_variables){
+        //変数を更新
         this.#_variable_name = new_variable_name;
         this.#selectDimensionSet(start_step,last_step,this.#_variable_name,all_variables);
         this.renderNDArray(start_step,last_step,all_variables,this.#_variable_name,this.#_vertical_axis_dimension,this.#_horizontal_axis_dimension,this.#_fixed_dimension_index);
@@ -328,6 +334,7 @@ export default class printNDArray{
             }
         }
 
+        //ステップ内に変数が存在しない場合は表示を消す
         if(!is_exist){
             this.#renderNDArrayTableHeader(0,vertical_dimension,horizontal_dimension);
             document.getElementById("n-d-array-div").style.display = "none";
@@ -394,13 +401,13 @@ export default class printNDArray{
         for(let i = 0;i<H;i++){
             const row = document.createElement("tr");
             //最初はインデックスの追加
-            const idx_name = document.createElement("td");
+            const idx_name = document.createElement("th");
             idx_name.textContent = `${vertical_dimension}:idx${i}`;
             row.appendChild(idx_name);
 
             //値の追加
             for(let j = 0;j<W;j++){
-                const value_cell = document.createElement("th");
+                const value_cell = document.createElement("td");
                 value_cell.textContent = table_two_d_array[i][j];
                 row.appendChild(value_cell);
             }

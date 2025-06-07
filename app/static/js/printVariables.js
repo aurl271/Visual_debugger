@@ -46,6 +46,7 @@ export default function renderVariablesTable(start_step,last_step,all_variables)
         )
     );
 
+    //変数がないなら表示を消してパス
     if(union_keys.length <= 0){
         document.getElementById("variables-div").style.display = "none";
         return;

@@ -29,12 +29,14 @@ export default class printSegmentTree{
         const segmenttree_select = document.getElementById("segmenttree-select");
         segmenttree_select.innerText = "";
 
+        //変数を取得
         const union_keys = Array.from(
             new Set(
                 all_variables.slice(start_step, last_step).flatMap(dict => dict["segtree"] ? Object.keys(dict["segtree"]) : [])
             )
         );
         
+        //変数がないなら表示を消してパス
         if(union_keys.length <= 0){
             document.getElementById("segmenttree-div").style.display = "none";
             return;
@@ -56,7 +58,6 @@ export default class printSegmentTree{
     //変数の指定
     #changeVariableName(start_step,last_step,new_variable_name,all_variables){
         this.#_variable_name = new_variable_name;
-        console.log("new_variable_name",new_variable_name);
         this.renderSegmentTreeTable(start_step,last_step,all_variables,this.#_variable_name);
     }
 
@@ -99,8 +100,7 @@ export default class printSegmentTree{
             }
         }
 
-        console.log(variable_name,is_exist);
-
+        //ステップ内に変数が存在しない場合は表示を消す
         if(!is_exist){
             this.#renderSegmentTreeHeaderTable(0);
             document.getElementById("segmenttree-table").style.visibility = "none";
@@ -109,6 +109,7 @@ export default class printSegmentTree{
             document.getElementById("segmenttree-table").style.visibility = "visible";
         }
 
+        //セグ木の内容を取得
         let segtree_contents = [],len = 0;
         for(let i=start_step;i<last_step;i++){
             if(all_variables[i]?.["segtree"]?.[variable_name] == undefined){
@@ -141,12 +142,10 @@ export default class printSegmentTree{
             table_segtree.push(tmp_str);
         }
 
-        console.log(table_segtree);
-
         for(let i=0;i < Math.log2((len));i++){
             const row = document.createElement("tr");
             for(let j=0;j < 1<<i;j++){
-                //最初はインデックスの追加
+                //セグ木の中身を追加
                 const table_content = document.createElement("td");
                 table_content.textContent = table_segtree[j+(1<<i)];
                 table_content.colSpan = (len)>>(i+1);

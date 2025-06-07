@@ -2,6 +2,7 @@ import renderVariablesTable from "./printVariables.js";
 import renderOneDArrayTable from "./printOneDArray.js";
 import printNDArray from "./printNDArray.js";
 import printSegmentTree from "./printSegmentTree.js";
+import renderStackTable from "./printStack.js";
 
 //すべての表示を更新する
 function renderTable(start_step,last_step,all_variables){
@@ -11,13 +12,18 @@ function renderTable(start_step,last_step,all_variables){
     renderOneDArrayTable(start_step,last_step,all_variables);
     //N次元配列のテーブル
     _printNDArray.renderNDArray(start_step,last_step,all_variables);
+    //セグ木のテーブル
     _printSegmentTree.renderSegmentTreeTable(start_step,last_step,all_variables);
+    //スタックのテーブル
+    renderStackTable(start_step,last_step,all_variables);
 }
 
 //1つの変数しか表示しないテーブルは同時に表示するステップを変えても表示する変数を変えたくないので、
 //renderTableとは別に選択をリセットできるようにする
 function selectAllReset(start_step,last_step,all_variables){
+    //N次元配列のセレクトのリセット
     _printNDArray.selectAllSet(start_step,last_step,all_variables);
+    //セグ木のセレクトのリセット
     _printSegmentTree.selectAllSet(start_step,last_step,all_variables);
 }
 
@@ -71,19 +77,25 @@ _step_length_select.addEventListener('change', (event) => {
     changeDisplayStepCount(Math.max(0,_current_step),Math.min(_current_step+_display_step_count,_all_variables.length),_all_variables);
 });
 
+//表示するステップ
 let _current_step = 0;
+//同時に表示するステップの数
 let _display_step_count = 1;
+//すべての変数が入っているjson
 const _all_variables = window._all_variables;
+//N次元配列のテーブルを表示するためのクラス
 const _printNDArray = new printNDArray(
     () => Math.max(0, _current_step),
     () => Math.min(_current_step + _display_step_count, _all_variables.length),
     () => _all_variables
 );
+//セグ木のテーブルを表示するためのクラス
 const _printSegmentTree = new printSegmentTree(
     () => Math.max(0, _current_step),
     () => Math.min(_current_step + _display_step_count, _all_variables.length),
     () => _all_variables
 );
 
+//初期表示
 selectAllReset(Math.max(0,_current_step),Math.min(_current_step+_display_step_count,_all_variables.length),_all_variables);
 renderTable(Math.max(0,_current_step),Math.min(_current_step+_display_step_count,_all_variables.length),_all_variables);
