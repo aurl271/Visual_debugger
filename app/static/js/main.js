@@ -3,6 +3,8 @@ import renderOneDArrayTable from "./printOneDArray.js";
 import printNDArray from "./printNDArray.js";
 import printSegmentTree from "./printSegmentTree.js";
 import renderStackTable from "./printStack.js";
+import renderQueueTable from "./printQueue.js";
+import renderDictTable from "./printDict.js";
 
 //すべての表示を更新する
 function renderTable(start_step,last_step,all_variables){
@@ -16,6 +18,10 @@ function renderTable(start_step,last_step,all_variables){
     _printSegmentTree.renderSegmentTreeTable(start_step,last_step,all_variables);
     //スタックのテーブル
     renderStackTable(start_step,last_step,all_variables);
+    //キューのテーブル
+    renderQueueTable(start_step,last_step,all_variables);
+    //辞書のテーブル
+    renderDictTable(start_step,last_step,all_variables);
 }
 
 //1つの変数しか表示しないテーブルは同時に表示するステップを変えても表示する変数を変えたくないので、

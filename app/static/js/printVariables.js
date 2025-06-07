@@ -27,6 +27,22 @@ export default function renderVariablesTable(start_step,last_step,all_variables)
     const table_body = document.querySelector("#variables-table tbody");
     table_body.innerHTML = "";
 
+    //扱うステップ内の変数名を取得
+    const union_keys = Array.from(
+        new Set(
+            all_variables.slice(start_step, last_step).flatMap(dict => dict["variables"] ? Object.keys(dict["variables"]) : [])
+        )
+    );
+
+    //変数がないなら表示を消してパス
+    if(union_keys.length <= 0){
+        document.getElementById("variables-div").style.display = "none";
+        document.querySelector("#variables-table thead").innerHTML = "";
+        return;
+    }else{
+        document.getElementById("variables-div").style.display = "block";
+    }
+
     //ヘッダーをセット
     renderVariablesTableHeader(start_step,last_step);
 
@@ -38,21 +54,6 @@ export default function renderVariablesTable(start_step,last_step,all_variables)
     step_cell.style.fontWeight = "bold";
     step_row.appendChild(step_cell);
     table_body.appendChild(step_row);
-
-    //扱うステップ内の変数名を取得
-    const union_keys = Array.from(
-        new Set(
-            all_variables.slice(start_step, last_step).flatMap(dict => dict["variables"] ? Object.keys(dict["variables"]) : [])
-        )
-    );
-
-    //変数がないなら表示を消してパス
-    if(union_keys.length <= 0){
-        document.getElementById("variables-div").style.display = "none";
-        return;
-    }else{
-        document.getElementById("variables-div").style.display = "block";
-    }
 
     //変数名ごとにループ
     for(let i=0; i < union_keys.length; i++) {

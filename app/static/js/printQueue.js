@@ -1,94 +1,94 @@
 //ヘッダーのセット
-function renderStackTableHeader(stack_names) {
-    const table_head = document.querySelector("#stack-table thead");
+function renderQueueTableHeader(queue_names) {
+    const table_head = document.querySelector("#queue-table thead");
     //中身のリセット
     table_head.innerHTML = "";
 
     const row_name = document.createElement("tr");
-    for(let i=0; i < stack_names.length; i++) {
+    for(let i=0; i < queue_names.length; i++) {
         //変数名のヘッダー
-        const stack_name = document.createElement("th");
-        stack_name.textContent = stack_names[i];
-        stack_name.style.textAlign = "center";
-        row_name.appendChild(stack_name);
+        const queue_name = document.createElement("th");
+        queue_name.textContent = queue_names[i];
+        queue_name.style.textAlign = "center";
+        row_name.appendChild(queue_name);
     }
     table_head.appendChild(row_name);
 }
 
 
 //スタックの表示
-export default function renderStackTable(start_step,last_step,all_variables) {
+export default function renderQueueTable(start_step,last_step,all_variables) {
     //変数名を取得
     const union_keys = Array.from(
         new Set(
-            all_variables.slice(start_step, last_step).flatMap(dict => dict["stack"] ? Object.keys(dict["stack"]) : [])
+            all_variables.slice(start_step, last_step).flatMap(dict => dict["deque"] ? Object.keys(dict["deque"]) : [])
         )
     );
 
     //テーブルを空に
-    const table_body = document.querySelector("#stack-table tbody");
+    const table_body = document.querySelector("#queue-table tbody");
     table_body.innerHTML = "";
 
     //変数名がないなら表示を消してパス
     if(union_keys.length <= 0){
-        document.getElementById("stack-div").style.display = "none";
+        document.getElementById("queue-div").style.display = "none";
         return;
     }else{
-        document.getElementById("stack-div").style.display = "block";
+        document.getElementById("queue-div").style.display = "block";
     }
 
     //ヘッダーの設定
-    renderStackTableHeader(union_keys);
+    renderQueueTableHeader(union_keys);
 
-    let table_stack_contents = [],max_len = 0;
+    let table_queue_contents = [],max_len = 0;
     for(let u=0; u < union_keys.length; u++) {
         //スタックの中身を取得
-        let stack_content = [],len = 0;
+        let queue_content = [],len = 0;
         for(let i=start_step;i<last_step;i++){
-            if(all_variables[i]?.["stack"]?.[union_keys[u]] == undefined){
-                stack_content.push(-1);
+            if(all_variables[i]?.["deque"]?.[union_keys[u]] == undefined){
+                queue_content.push(-1);
             }else{
-                stack_content.push(all_variables[i]["stack"][union_keys[u]]);
-                len = Math.max(len,all_variables[i]["stack"][union_keys[u]].length);
+                queue_content.push(all_variables[i]["deque"][union_keys[u]]);
+                len = Math.max(len,all_variables[i]["deque"][union_keys[u]].length);
             }
         }
         max_len = Math.max(max_len, len);
 
         //-1のところを"N/A"の2次元配列に
         for(let i=0;i<last_step-start_step;i++){
-            if(stack_content[i] === -1){
-                let tmp_stack = [];
-                for(let j = 0;j<len;j++)tmp_stack.push("N/A");
-                stack_content[i] = tmp_stack;
+            if(queue_content[i] === -1){
+                let tmp_queue = [];
+                for(let j = 0;j<len;j++)tmp_queue.push("N/A");
+                queue_content[i] = tmp_queue;
             }
         }
 
         //スタックの長さを調整
         for(let i=0;i<last_step-start_step;i++){
-            if(stack_content[i].length !== len){
-                for(let j=stack_content[i].length;j<len;j++){
-                    stack_content[i].push("N/A");
+            if(queue_content[i].length !== len){
+                for(let j=queue_content[i].length;j<len;j++){
+                    queue_content[i].push("N/A");
                 }
             }
         }
 
         //実際に表示するテーブル
-        let table_stack = []
+        let table_queue = []
         for(let i = 0;i<len;i++){
-            let tmp_str = String(stack_content[0][i]);
+            let tmp_str = String(queue_content[0][i]);
             for(let j = 1;j < last_step-start_step;j++){
-                tmp_str = tmp_str + "->" + String(stack_content[j][i]);
+                tmp_str = tmp_str + "->" + String(queue_content[j][i]);
             }
-            table_stack.push(tmp_str);
+            table_queue.push(tmp_str);
         }
-        table_stack_contents.push(table_stack);
+        table_queue_contents.push(table_queue);
     }
 
     //ヘッダーの設定
     const row_top = document.createElement("tr");
     for(let u=0; u < union_keys.length; u++) {
         const table_content = document.createElement("td");
-        table_content.textContent = "top";
+        table_content.textContent = "Back";
         table_content.style.textAlign = "center";
         row_top.appendChild(table_content);
     }
@@ -99,7 +99,7 @@ export default function renderStackTable(start_step,last_step,all_variables) {
         const row = document.createElement("tr");
         for(let u=0; u < union_keys.length; u++) {
             const table_content = document.createElement("td");
-            if(i < table_stack_contents[u].length)table_content.textContent = table_stack_contents[u][i];
+            if(i < table_queue_contents[u].length)table_content.textContent = table_queue_contents[u][i];
             else table_content.textContent = "";
             table_content.style.textAlign = "center";
             row.appendChild(table_content);
@@ -111,7 +111,7 @@ export default function renderStackTable(start_step,last_step,all_variables) {
     const row_bottom = document.createElement("tr");
     for(let u=0; u < union_keys.length; u++) {
         const table_content = document.createElement("td");
-        table_content.textContent = "bottom";
+        table_content.textContent = "Front";
         table_content.style.textAlign = "center";
         row_bottom.appendChild(table_content);
     }
@@ -119,7 +119,7 @@ export default function renderStackTable(start_step,last_step,all_variables) {
 }
 
 /*
-export default class printStack{
+export default class printQueue{
 
     //今選択している変数名
     #_variable_name = "";
@@ -137,31 +137,31 @@ export default class printStack{
         this.#_getLastStep = getLastStep;
         this.#_getAllVariables = getAllVariables;
 
-        const stack_select = document.getElementById("stack-select");
+        const queue_select = document.getElementById("queue-select");
 
         //変数選択できるように
-        stack_select.addEventListener("change", (event) => {
+        queue_select.addEventListener("change", (event) => {
             this.#changeVariableName(this.#_getStartStep(),this.#_getLastStep(),event.target.value,this.#_getAllVariables());
         });
     }
 
     //セレクト欄をリセット
     selectAllSet(start_step,last_step,all_variables){
-        const stack_select = document.getElementById("stack-select");
-        stack_select.innerText = "";
+        const queue_select = document.getElementById("queue-select");
+        queue_select.innerText = "";
 
         //変数名を取得
         const union_keys = Array.from(
             new Set(
-                all_variables.slice(start_step, last_step).flatMap(dict => dict["stack"] ? Object.keys(dict["stack"]) : [])
+                all_variables.slice(start_step, last_step).flatMap(dict => dict["queue"] ? Object.keys(dict["queue"]) : [])
             )
         );
         
         if(union_keys.length <= 0){
-            document.getElementById("stack-div").style.display = "none";
+            document.getElementById("queue-div").style.display = "none";
             return;
         }else{
-            document.getElementById("stack-div").style.display = "block";
+            document.getElementById("queue-div").style.display = "block";
         }
 
         //変数名のオプションの追加
@@ -169,7 +169,7 @@ export default class printStack{
             const option = document.createElement("option");
             option.value = union_keys[i];
             option.textContent = `変数名:${union_keys[i]}`;
-            stack_select.appendChild(option);
+            queue_select.appendChild(option);
         }
 
         this.#_variable_name = union_keys[0];
@@ -179,21 +179,21 @@ export default class printStack{
     #changeVariableName(start_step,last_step,new_variable_name,all_variables){
         this.#_variable_name = new_variable_name;
         console.log("new_variable_name",new_variable_name);
-        this.renderStackTable(start_step,last_step,all_variables,this.#_variable_name);
+        this.renderQueueTable(start_step,last_step,all_variables,this.#_variable_name);
     }
 
     //の表示
-    renderStackTable(start_step,last_step,all_variables,variable_name = undefined) {
+    renderQueueTable(start_step,last_step,all_variables,variable_name = undefined) {
         variable_name ??= this.#_variable_name;
 
         //テーブルを空に
-        const table_body = document.querySelector("#stack-table tbody");
+        const table_body = document.querySelector("#queue-table tbody");
         table_body.innerHTML = "";
 
         let is_exist = false;
         //該当する変数がないまたは横軸と縦軸が一致している場合はパス
         for(let i=start_step;i<last_step;i++){
-            if(all_variables[i]?.["stack"]?.[variable_name] != undefined){
+            if(all_variables[i]?.["queue"]?.[variable_name] != undefined){
                 is_exist = true;
                 break;
             }
@@ -201,50 +201,50 @@ export default class printStack{
 
         //変数がないなら表示を消してパス
         if(!is_exist){
-            document.getElementById("stack-table").style.visibility = "none";
+            document.getElementById("queue-table").style.visibility = "none";
             return;
         }else{
-            document.getElementById("stack-table").style.visibility = "visible";
+            document.getElementById("queue-table").style.visibility = "visible";
         }
 
         //スタックの中身を取得
-        let stack_contents = [],len = 0;
+        let queue_contents = [],len = 0;
         for(let i=start_step;i<last_step;i++){
-            if(all_variables[i]?.["stack"]?.[variable_name] == undefined){
-                stack_contents.push(-1);
+            if(all_variables[i]?.["queue"]?.[variable_name] == undefined){
+                queue_contents.push(-1);
             }else{
-                stack_contents.push(all_variables[i]["stack"][variable_name]);
-                len = Math.max(len,all_variables[i]["stack"][variable_name].length);
+                queue_contents.push(all_variables[i]["queue"][variable_name]);
+                len = Math.max(len,all_variables[i]["queue"][variable_name].length);
             }
         }
-        console.log("table_stack",stack_contents);
+        console.log("table_queue",queue_contents);
 
         //-1のところを"N/A"の2次元配列に
         for(let i=0;i<last_step-start_step;i++){
-            if(stack_contents[i] === -1){
-                let tmp_stack = [];
-                for(let j = 0;j<len;j++)tmp_stack.push("N/A");
-                stack_contents[i] = tmp_stack;
+            if(queue_contents[i] === -1){
+                let tmp_queue = [];
+                for(let j = 0;j<len;j++)tmp_queue.push("N/A");
+                queue_contents[i] = tmp_queue;
             }
         }
 
         //スタックの長さを調整
         for(let i=0;i<last_step-start_step;i++){
-            if(stack_contents[i].length !== len){
-                for(let j=stack_contents[i].length;j<len;j++){
-                    stack_contents[i].push("N/A");
+            if(queue_contents[i].length !== len){
+                for(let j=queue_contents[i].length;j<len;j++){
+                    queue_contents[i].push("N/A");
                 }
             }
         }
 
         //実際に表示するテーブル
-        let table_stack = []
+        let table_queue = []
         for(let i = 0;i<len;i++){
-            let tmp_str = String(stack_contents[0][i]);
+            let tmp_str = String(queue_contents[0][i]);
             for(let j = 1;j < last_step-start_step;j++){
-                tmp_str = tmp_str + "->" + String(stack_contents[j][i]);
+                tmp_str = tmp_str + "->" + String(queue_contents[j][i]);
             }
-            table_stack.push(tmp_str);
+            table_queue.push(tmp_str);
         }
 
         //ヘッダーの設定
@@ -259,7 +259,7 @@ export default class printStack{
         for(let i=len-1;i >= 0;i--){
             const row = document.createElement("tr");
             const table_content = document.createElement("td");
-            table_content.textContent = table_stack[i];
+            table_content.textContent = table_queue[i];
             table_content.style.textAlign = "center";
             row.appendChild(table_content);
             //行を追加

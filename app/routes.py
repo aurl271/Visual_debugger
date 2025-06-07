@@ -13,6 +13,7 @@ app = Blueprint('app', __name__)
 
 debug_code = '''
 from atcoder.segtree import SegTree
+from collections import deque
 
 def __get_dimension(array):
     if not isinstance(array, list):
@@ -22,26 +23,30 @@ def __get_dimension(array):
         return 0
     return 1 + __get_dimension(array[0])
     
-def __reshape(array,m):
+def __reshape_array(array,m):
     if __get_dimension(array) == m:
         return str(array)
     else:
-        return [__reshape(x,m) for x in array]
+        return [__reshape_array(x,m) for x in array]
 
 #option={変数名:{reshape: int}}
 #reshapeでmを指定すると、m次元配列を1つの要素として扱う
-def debug(option = None,**kwargs):
+def debug(option = {},**kwargs):
     print("###debug_start")
     for name,value in kwargs.items():
         if name in option:
             for key, val in option[name].items():
-                if key == "reshape":
-                    value = __reshape(value, val)
+                if key == "reshape" and isinstance(value, (list,)):
+                    value = __reshape_array(value, val)
+                elif key == "reshape" and isinstance(value, (deque,)):
+                    value = deque([str(x) for x in value])
                     
-        if isinstance(value, (int, str, float)):
+        if isinstance(value, (int, str, float,tuple,)):
             print(f"variables {name} {value}")
+        elif isinstance(value, (deque,)):
+            print(f"deque {name} {list(value)}")
         elif isinstance(value, (list,)):
-            if __get_dimension(value) == 1 and ("stack" in name.lower() or "stk" in name.lower()):
+            if "stack" in name.lower() or "stk" in name.lower():
                 print(f"stack {name} {value}")
             elif __get_dimension(value) == 1:
                 print(f"one_d_array {name} {value}")
@@ -49,6 +54,8 @@ def debug(option = None,**kwargs):
                 print(f"n_d_array {name} {value}")
         elif isinstance(value, (SegTree,)):
             print(f"segtree {name} {value.get_segtree()}")
+        elif isinstance(value, (dict,)):
+            print(f"dict {name} {value}")
     print("###debug_end")
 '''
 
@@ -110,7 +117,6 @@ def home():
                         is_debug = False
                         continue
                     parts = line.split(maxsplit=2)
-                    print(parts)
                     if len(parts) != 3:
                         continue
                     type_name, var_name, value_str = parts
@@ -124,6 +130,10 @@ def home():
                         step_variables.setdefault(type_name, {})[var_name] = [str(t) for t in ast.literal_eval(value_str)]
                     elif type_name == "stack":
                         step_variables.setdefault(type_name, {})[var_name] = [str(t) for t in ast.literal_eval(value_str)]
+                    elif type_name == "deque":
+                        step_variables.setdefault(type_name, {})[var_name] = [str(t) for t in ast.literal_eval(value_str)]
+                    elif type_name == "dict":
+                        step_variables.setdefault(type_name, {})[var_name] = ast.literal_eval(value_str)
             except Exception as e:
                 error_message = str(e)
                 error_message = "エラー発生:" + error_message
