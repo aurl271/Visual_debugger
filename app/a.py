@@ -1,13 +1,3 @@
-import ast
-a = {"a": 1, "b": 2, "c": 3}
-print(a)
-print(isinstance(a, (dict,)))
-b = ast.literal_eval(str(a))
-print(b)
-print(isinstance(b, (dict,)))
-c = (1,2)
-print(isinstance(c, (tuple,)))
-"""
 from atcoder.segtree import SegTree
 from collections import deque
 
@@ -75,6 +65,9 @@ stk1 = [1, 2, 3]
 stk2 = [(1,2), (3,4), (5,6)]
 stk3 = [[1,2], [3,4], [5,6]]
 
+dict1 = {"a": 1, "b": "b", "c": 3.3}
+dict2 = {"a": (1,2), "b": [2,3], "c": [[1,2],[3,4]]}
+
 from collections import deque
 queue1 = deque([1, 2, 3])
 queue2 = deque([(1, 2), (3, 4), (5, 6)])
@@ -108,7 +101,9 @@ debug(
     stk3 = stk3,
     queue1 = queue1,
     queue2 = queue2,
-    queue3 = queue3
+    queue3 = queue3,
+    dict1 = dict1,
+    dict2 = dict2
 )
 
 a += 3
@@ -131,6 +126,8 @@ stk3.append([7,8])
 queue1.append(4)
 queue2.popleft()
 queue3.append([7,8])
+dict1["d"] = -4
+dict2["e"] = [5,6]
 debug(
     option={
         "e": {"reshape": 1},
@@ -159,6 +156,7 @@ debug(
     stk3 = stk3,
     queue1 = queue1,
     queue2 = queue2,
-    queue3 = queue3
+    queue3 = queue3,
+    dict1 = dict1,
+    dict2 = dict2
 )
-"""

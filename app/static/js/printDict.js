@@ -54,7 +54,7 @@ export default function renderDictTable(start_step,last_step,all_variables) {
     //今がどのステップを扱っているかの表示
     const step_row = document.createElement("tr");
     const step_cell = document.createElement("td");
-    step_cell.colSpan = (last_step - start_step) + 1;
+    step_cell.colSpan = (last_step - start_step) + 2;
     step_cell.textContent = `ステップ: ${start_step + 1}～${last_step}`;
     step_cell.style.fontWeight = "bold";
     step_row.appendChild(step_cell);
