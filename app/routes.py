@@ -56,6 +56,8 @@ def debug(option = {},**kwargs):
             print(f"segtree {name} {value.get_segtree()}")
         elif isinstance(value, (dict,)):
             print(f"dict {name} {value}")
+        elif isinstance(value, (set,)):
+            print(f"set {name} {list(value)}")
     print("###debug_end")
 '''
 
@@ -134,6 +136,8 @@ def home():
                         step_variables.setdefault(type_name, {})[var_name] = [str(t) for t in ast.literal_eval(value_str)]
                     elif type_name == "dict":
                         step_variables.setdefault(type_name, {})[var_name] = ast.literal_eval(value_str)
+                    elif type_name == "set":
+                        step_variables.setdefault(type_name, {})[var_name] = [str(t) for t in ast.literal_eval(value_str)]
             except Exception as e:
                 error_message = str(e)
                 error_message = "エラー発生:" + error_message
